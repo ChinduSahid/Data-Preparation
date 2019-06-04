@@ -12,7 +12,7 @@ Enquiry.Date,Enquiry.Time,Allocated.Time,Web.or.Phone,Answered by specialist,Con
 5/21/2017,19:48:38,Fast,PHONE,Yes,1,1,A,grade2,Lon Heathrow,3/28/2018,44, AC,10,4,0,0,None Required,NO,NO,Ms,NO,YES
 5/27/2017,17:24:38,Fast,PHONE,Yes,0,1,E,grade2,Lon Gat,6/8/2018,54, AC,14,4,0,0,A,YES,YES,Ms,NO,YES
 3/21/2017,18:42:43,Fast,PHONE,,6,5,A,grade1,MCH,10/6/2017,28, AC,14,2,0,0,A,NO,NO,Ms,NO,YES
-9/12/2018,17:40,Fast,PHONE,Yes,8,3,E,,Lon All,7/24/2019,45, PP Area,14,5,2,0,None Required,YES,NO,Ms,YES,YES
+9/12/2018,17:40,Fast,PHONE,Yes,8,3,E,,Lon All,7/24/2019,-10, PP Area,14,5,2,0,None Required,YES,NO,Ms,YES,YES
 1/6/2019,19:53,Fast,PHONE,Yes,6,2,A,grade1,BH,8/17/2019,31, PP Area,14,6,2,0,A,YES,YES,Ms,YES,YES
 8/11/2017,12:04:39,Fast,PHONE,Yes,0,1,A,grade1,GG,6/21/2018,45, AC,14,4,0,0,A,YES,YES,Ms,NO,YES
 8/25/2018,11:14,Fast,PHONE,,0,2,A,grade2,Lon All,3/10/2020,81, NM AB Resort,13,5,1,0,None Required,YES,NO,Ms,YES,YES
@@ -31,7 +31,7 @@ Enquiry.Date,Enquiry.Time,Allocated.Time,Web.or.Phone,Answered by specialist,Con
 5/10/2017,10:20:39,Fast,PHONE,,14,3,A,grade3,MCH,10/13/2019,127, AC,14,2,1,0,B,NO,NO,Ms,NO,YES
 11/27/2018,11:38,Fast,PHONE,,9,2,A,grade2,MCH,5/5/2019,23, AB,10,2,0,0,B,YES,NO,Ms,YES,YES
 10/25/2018,10:40,Fast,PHONE,,12,5,E,,MCH,11/6/2019,54, JH Area,14,9,5,1,B,YES,NO,Ms,YES,YES
-6/2/2017,15:58:38,Fast,PHONE,,2,1,B,grade1,MCH,4/19/2019,98, AC,14,3,1,0,A,NO,NO,Ms,NO,YES
+6/2/2017,15:58:38,Fast,PHONE,,2,1,B,grade1,MCH,4/19/2019,-5, AC,14,3,1,0,A,NO,NO,Ms,NO,YES
 6/18/2017,13:42:40,Fast,PHONE,,2,2,A,grade1,GG,11/1/2017,19, JH Area,10,4,0,0,A,NO,NO,Ms,NO,YES
 2/5/2018,9:34,Fast,PHONE,,6,3,D,grade2,AD,10/8/2018,35, AC,14,4,1,0,B,YES,YES,Ms,NO,YES
 9/4/2018,13:06,Fast,PHONE,,10,7,A,grade1,Bristol,7/27/2019,46, JH Area,14,4,0,0,A,YES,NO,Ms,YES,YES
