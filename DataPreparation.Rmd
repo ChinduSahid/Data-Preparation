@@ -1,35 +1,39 @@
 ---
 output:
-  html_document: default
-  pdf_document: default
+  html_document:
+    df_print: paged
+  pdf_document:
+    fig_height: 4
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-List of libraries used
+
 ```{r,include=FALSE}
 library(lubridate)
 library(zoo)
 library(imputeTS)
 library(DataExplorer)
 library(data.table)
+library(DT)
 ```
 
 ## Data Preparation
-
 ### *Cleaning/Feature engineering/Data manipulation*
 
 A sample data of a travel industry is prepared for modelling purpose. The data set consists of 999 observations and 23 variables about customer enquiries about holiday packages. This dataset is prepared to create predictive models for predicting the 'Booked.Status'.'Data for cleaning.csv' is the input file and 'ReadyforModelling.csv' is the output file after the data preperation methods are carried out.
 
 **List of library used:**
-library(lubridate), library(zoo), library(imputeTS), library(DataExplorer), library(data.table) 
+library(lubridate), library(zoo), library(imputeTS), library(DataExplorer), library(data.table), library(DT) 
 
 #### Read data and get a basic understanding of the data  
 ```{r}
 data<- read.csv("data for cleaning.csv")
-head(data)
+datatable(data, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
 dim(data)
 ```
+The dataset contains 999 observations with 23 variables
 
 #### Check the structure of the dataset
 ```{r}
@@ -45,6 +49,8 @@ data$TempSent<-NULL
 data$ConversationRCD<-NULL
 ```
 
+\newpage
+
 #### Convert Dep.Date and Enquiry.Date to date format
 ```{r}
 data$Enquiry.Date<- as.character(data$Enquiry.Date)
@@ -52,7 +58,6 @@ data$Enquiry.Date<-mdy(data$Enquiry.Date)
 data$Dep.Date<- as.character(data$Dep.Date)
 data$Dep.Date<-mdy(data$Dep.Date)
 ```
-
 #### Apply feature engineering to create various date related columns which might give us better insights
 ```{r}
 data$EnquiryYear<-factor(year(data$Enquiry.Date))
@@ -64,19 +69,20 @@ data$DepMonth<-factor(month(data$Dep.Date))
 data$DepDay<-day(data$Dep.Date)
 data$DepWeekday<-factor(weekdays(data$Dep.Date))
 ```
-
 #### Change Enquiry.time to various time related levels to give us better insights
 ```{r}
 data$Enquiry.Time <- as.numeric(gsub("\\:.*$", "", data$Enquiry.Time))
-data$Enquiry.Timecat<-ifelse(data$Enquiry.Time>=9 & data$Enquiry.Time<=21,"Business_Hour","Closed")
+data$Enquiry.Timecat<-ifelse(data$Enquiry.Time>=9 & 
+                               data$Enquiry.Time<=21,"Business_Hour","Closed")
 data$Enquiry.Timecat<-factor(data$Enquiry.Timecat)
 
-data$Enquiry.Time_class <- with(data,  ifelse(Enquiry.Time >= 6 & Enquiry.Time<=12, "morning",
-                                              ifelse(Enquiry.Time>12 & Enquiry.Time<=18, "afternoon", "night")))
+data$Enquiry.Time_class <- with(data,  ifelse(Enquiry.Time >= 6 &
+                                                Enquiry.Time<=12, "morning",
+                                       ifelse(Enquiry.Time>12 & 
+                                                Enquiry.Time<=18, "afternoon", "night")))
 data$Enquiry.Time<- NULL
 data$Enquiry.Time_class<-factor(data$Enquiry.Time_class)
 ```
-
 #### Change Dep.Date to seasons this could give a better idea of popular destinations for each seasons
 ```{r}
 yq <- as.yearqtr(as.yearmon(data$Dep.Date, "%m/%d/%Y") + 1/12)
@@ -89,7 +95,7 @@ Since Enquiry.Date and Dep.Date has no further use in this analysis, these varia
 data$Enquiry.Date<-NULL
 data$Dep.Date<-NULL
 ```
-
+\newpage
 #### Check for missing values
 ```{r}
 colSums(is.na(data))
@@ -112,7 +118,7 @@ data$Answered.by.specialist<-ifelse(data$Answered.by.specialist %in% 'Yes',"1","
 data$Answered.by.specialist<-factor(data$Answered.by.specialist)
 ```
 
-From the summary analysis carried out earlier, it is understood that there are some errors in the data. To remove these errors, a function is created. This function converts any values stated by the user to 'NA'
+From the summary analysis carried out earlier, it is understood that there are some errors in the data. To remove these errors, a function is created. This function converts any values stated by the user to 'NA'.
 
 ```{r}
 outlierReplace = function(dataframe, cols, rows, newValue = NA)
@@ -124,20 +130,21 @@ outlierReplace = function(dataframe, cols, rows, newValue = NA)
 }
 ```
 
-From the understanding of the dataset, Lead.Time refers to the duration before the Dep.Date that the customer has made the enquiry. Based on this knowledge this variable should not have negative values. Hence the outlierfunction is used to eliminate any negative values
+From the understanding of the dataset, Lead.Time refers to the duration before the Dep.Date that the customer has made the enquiry. Based on this knowledge this variable should not have negative values. Hence the outlierfunction is used to eliminate any negative values.
 ```{r}
 outlierReplace(data, "Lead.Time",which(data$Lead.Time<0), NA)
 ```
 
-The variable infants has a maximum value of 255, this is likely to be an error based on the mean and median. Furthermore it is unlikely to have 255 infants in a holiday.To verify the error a scatter plot is used to get a better understanding
-```{r}
+The variable infants has a maximum value of 255, this is likely to be an error based on the mean and median. Furthermore it is unlikely to have 255 infants in a holiday.To verify the error a scatter plot is used to get a better understanding.
+
+```{r, }
 plot(data$Infants)
 ```
-
-Based on the plot, the row with 255 infants was eliminated as this is definitely a data entry error
+Based on the plot, the row with 255 infants was eliminated as this is definitely a data entry error.
 ```{r}
 outlierReplace(data,"Infants",which(data$Infants>10),NA)
 ```
+\newpage
 Checking the plot again for Infants
 ```{r}
 plot(data$Infants)
@@ -147,7 +154,7 @@ From the plot it is observed that there is only two observations where Infants >
 ```{r}
 outlierReplace(data,"Infants",which(data$Infants>1),NA)
 ```
-
+\newpage
 From the summary statistics of Adults, the maximum value of adults is far greater than the mean and median value. To better understand this, a scatterplot for adults is created.
 ```{r}
 plot(data$Adults)
@@ -158,12 +165,12 @@ From the plot, it is observed that these is some extreme values, it is ideal to 
 ```{r}
 outlierReplace(data,"Adults",which(data$Adults>10),NA)
 ```
-
+\newpage
 Outliers in Duration was treated using the same method
 ```{r}
 plot(data$Duration)
-outlierReplace(data,"Duration",which(data$Duration>21),NA)
-outlierReplace(data,"Duration",which(data$Duration<5),NA)
+outlierReplace(data,"Duration",which(data$Duration>21 & data$Duration<5),NA)
+plot(data$Duration)
 ```
 
 
