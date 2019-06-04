@@ -1,8 +1,6 @@
 ---
 output:
-  html_document:
-    df_print: paged
-  pdf_document:
+  pdf_document: 
     fig_height: 4
 ---
 
@@ -16,21 +14,20 @@ library(zoo)
 library(imputeTS)
 library(DataExplorer)
 library(data.table)
-library(DT)
 ```
 
 ## Data Preparation
 ### *Cleaning/Feature engineering/Data manipulation*
-
+***
 A sample data of a travel industry is prepared for modelling purpose. The data set consists of 999 observations and 23 variables about customer enquiries about holiday packages. This dataset is prepared to create predictive models for predicting the 'Booked.Status'.'Data for cleaning.csv' is the input file and 'ReadyforModelling.csv' is the output file after the data preperation methods are carried out.
 
 **List of library used:**
-library(lubridate), library(zoo), library(imputeTS), library(DataExplorer), library(data.table), library(DT) 
+library(lubridate), library(zoo), library(imputeTS), library(DataExplorer), library(data.table) 
 
 #### Read data and get a basic understanding of the data  
 ```{r}
 data<- read.csv("data for cleaning.csv")
-datatable(data, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+head(data)
 dim(data)
 ```
 The dataset contains 999 observations with 23 variables
@@ -100,9 +97,9 @@ data$Dep.Date<-NULL
 ```{r}
 colSums(is.na(data))
 ```
-The variable Duration has missing values. Since only a small number of observations have missing values, it was decided that the missing values will be replace by the mean value
+The variable Duration has missing values. Since only a small number of observations have missing values, it was decided that the missing values will be replace by the median value
 ```{r}
-data$Duration<-na.mean(data$Duration,option="mean")
+data$Duration<-na.mean(data$Duration,option="median")
 ```
 
 To further understand the data, the summary function is used
@@ -135,68 +132,46 @@ From the understanding of the dataset, Lead.Time refers to the duration before t
 outlierReplace(data, "Lead.Time",which(data$Lead.Time<0), NA)
 ```
 
-The variable infants has a maximum value of 255, this is likely to be an error based on the mean and median. Furthermore it is unlikely to have 255 infants in a holiday.To verify the error a scatter plot is used to get a better understanding.
-
-```{r, }
-plot(data$Infants)
-```
-Based on the plot, the row with 255 infants was eliminated as this is definitely a data entry error.
-```{r}
-outlierReplace(data,"Infants",which(data$Infants>10),NA)
-```
-\newpage
-Checking the plot again for Infants
-```{r}
-plot(data$Infants)
-```
-
-From the plot it is observed that there is only two observations where Infants >1, hence it was decided that these observations will be treated as outliers.
-```{r}
-outlierReplace(data,"Infants",which(data$Infants>1),NA)
-```
-\newpage
-From the summary statistics of Adults, the maximum value of adults is far greater than the mean and median value. To better understand this, a scatterplot for adults is created.
-```{r}
-plot(data$Adults)
-```
-
-From the plot, it is observed that these is some extreme values, it is ideal to remove these extreme values to prevent overfitting. In this case, it is decided that all observations with greater than 10 adults will be treated as outliers. Sometimes it is ideal to use a box-plot to eliminate outliers, but in this dataset a boxplot method to remove outliers removed many important observations. Hence, the outlier function created earlier was used to deal with the outliers.
-
-```{r}
-outlierReplace(data,"Adults",which(data$Adults>10),NA)
-```
-\newpage
-Outliers in Duration was treated using the same method
-```{r}
-plot(data$Duration)
-outlierReplace(data,"Duration",which(data$Duration>21 & data$Duration<5),NA)
-plot(data$Duration)
-```
-
-
-A plot of children was created to understand the outliers in the varaiable children
-```{r}
-plot(data$Children)
-```
-
-A box plot method was used to deal with the outliers for the valiable 'Children'
-```{r}
-boxplot(data$Children)
-outliers2 <- boxplot(data$Children, plot=FALSE)$out
-data <- data[-which(data$Children %in% outliers2),]
-```
-
-Similarly outliers in Lead.Time was treated using the same method
-```{r}
-boxplot(data$Lead.Time)
-outliers3 <- boxplot(data$Lead.Time, plot=FALSE)$out
-data <- data[-which(data$Lead.Time %in% outliers3),]
-```
-
-
 #### Remove all outliers and NA values
 ```{r}
 data<-na.omit(data)
+```
+The variable infants has a maximum value of 255, this is likely to be an error based on the mean and median. Furthermore it is unlikely to have 255 infants in a holiday.To verify the error a box-plot is used to get a better understanding.
+
+```{r,out.width=c('50%', '50%'), fig.show='hold'}
+boxplot(data$Infants, main= 'box-plot infants',ylab='infants')
+outliers0 <- boxplot(data$Infants, plot=FALSE)$out
+data <- data[-which(data$Infants %in% outliers0),]
+boxplot(data$Infants,main='box-plot infants after outlier removal',ylab='infants')
+```
+After removing the outliers, the data only contains observaions with 0 infants. Hence, it would not be of any use in the analysis as all cases contains 0 infants. The variable Infants is removed from the dataframe.
+```{r}
+data$Infants<-NULL
+```
+\newpage
+From the summary statistics of Adults, the maximum value of adults is far greater than the mean and median value. To better understand this, a scatterplot for adults is created.
+```{r,out.width=c('50%', '50%'), fig.show='hold'}
+boxplot(data$Adults,main='box-plot adults',ylab='adults')
+outlierReplace(data,"Adults",which(data$Adults>10),NA)
+outliers1 <- boxplot(data$Adults, plot=FALSE)$out
+data <- data[-which(data$Adults %in% outliers1),]
+boxplot(data$Adults,main='box-plot adults after outlier removal',ylab='adults')
+```
+
+A box plot method was used to deal with the outliers for the valiable 'Children'
+```{r,out.width=c('50%', '50%'), fig.show='hold'}
+boxplot(data$Children,main='box-plot children',ylab='children')
+outliers3 <- boxplot(data$Children, plot=FALSE)$out
+data <- data[-which(data$Children %in% outliers3),]
+boxplot(data$Children, main='box-plot children after outlier removal',ylab='children')
+```
+
+Similarly outliers in Lead.Time was treated using the same method
+```{r,out.width=c('50%', '50%'), fig.show='hold'}
+boxplot(data$Lead.Time,main='box-plot lead.time',ylab='lead.time')
+outliers4 <- boxplot(data$Lead.Time, plot=FALSE)$out
+data <- data[-which(data$Lead.Time %in% outliers4),]
+boxplot(data$Lead.Time, main='box-plot lead.time after outlier removal',ylab='lead.time')
 ```
 
 To avoid redundant levels in a categorical variable and to deal with rare levels, we can simply combine the rare levels.In this analysis, combining levels is based on frequency destribution (combine levels having frequency of less than 5%). From the summary statistic, Destination and Dep.Airport has more than 10 levels. A histogram plot is created to understand the levels in these variables and rare levels of these variables are combined.
@@ -204,57 +179,62 @@ To avoid redundant levels in a categorical variable and to deal with rare levels
 
 #### Destination
 ```{r}
-plot_bar(data$Destination)
+plot_bar(data$Destination,title="Destination")
 data<-group_category(data=data, feature = "Destination", threshold=0.05, update=TRUE)
 data$Destination<- factor(data$Destination)
 ```
 New levels for Destination after combining rare levels
 ```{r}
-plot_bar(data$Destination)
+plot_bar(data$Destination,title="Destination after combining levels")
 ```
 
-
+\newpage
 #### Dep.Airport
 ```{r}
-plot_bar(data$Dep.Airport)
+plot_bar(data$Dep.Airport,title="Dep.Airport")
 data<-group_category(data=data, feature = "Dep.Airport", threshold=0.05,update=TRUE)
 data$Dep.Airport<-factor(data$Dep.Airport)
 ```
 New levels for Dep.Airport after combining rare levels
 ```{r}
-plot_bar(data$Dep.Airport)
+plot_bar(data$Dep.Airport,title="Dep.Airport after combining levels")
 ```
+\newpage
 
 #### Combine levels based on business logic
 
 From the plot of Transport.Type it is identified that some of the points are unlabeled, we can treat the unlabelled points as 'None Required'Combining unlabed points with the the 'None required' level
 ```{r}
-plot_bar(data$Transport.Type)
+plot_bar(data$Transport.Type,title="Transport.Type")
 data$Transport.Type <- with(data,  ifelse(Transport.Type %in% "A","A",
-                                          ifelse(Transport.Type %in% "B", "B", "None Required")))
+                                     ifelse(Transport.Type %in% "B", "B", "None Required")))
 data$Transport.Type<- factor(data$Transport.Type)
+plot_bar(data$Transport.Type,title="Transport.Type after combining levels")
 ```
 
 
 #### Combine unlabbeled points in Accom.type into 'None'
 ```{r}
-plot_bar(data$Accom.type)
+plot_bar(data$Accom.type,title="Accom.type")
 data$Accom.type <- with(data,  ifelse(Accom.type %in% "grade2","grade2",
-                                      ifelse(Accom.type %in% "grade1", "grade1", 
-                                             ifelse(Accom.type %in% "grade3", "grade3","None"))))
+                                  ifelse(Accom.type %in% "grade1", "grade1", 
+                                     ifelse(Accom.type %in% "grade3", "grade3","None"))))
 
 data$Accom.type<- factor(data$Accom.type)
+plot_bar(data$Accom.type,title="Accom.type after combining levels")
 ```
 
 It could be ideal to analyse based on gender than based on Title, converting title to M for male and F for female. An assumption is made that "Dr" refers to male
 
 ```{r}
+plot_bar(data$Title, title="Title")
 data$Gender<- with(data, ifelse(Title %in% "Dr","M",
                                 ifelse(Title %in% "Mr","M",
                                        ifelse(Title %in% "Ms","F",
                                               ifelse(Title %in% "Mrs","F","F")))))
 
 data$Gender<-factor(data$Gender)
+plot_bar(data$Gender, title="Gender")
 ```
 
 The variable Booked.Status is the target variable and it would be ideal to convert it into '1' and '0' before modelling
