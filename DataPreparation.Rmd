@@ -1,0 +1,275 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+List of libraries used
+```{r,include=FALSE}
+library(lubridate)
+library(zoo)
+library(imputeTS)
+library(DataExplorer)
+library(data.table)
+```
+
+## Data Preparation
+
+### *Cleaning/Feature engineering/Data manipulation*
+
+A sample data of a travel industry is prepared for modelling purpose. The data set consists of 999 observations and 23 variables about customer enquiries about holiday packages. This dataset is prepared to create predictive models for predicting the 'Booked.Status'.'Data for cleaning.csv' is the input file and 'ReadyforModelling.csv' is the output file after the data preperation methods are carried out.
+
+**List of library used:**
+library(lubridate), library(zoo), library(imputeTS), library(DataExplorer), library(data.table) 
+
+#### Read data and get a basic understanding of the data  
+```{r}
+data<- read.csv("data for cleaning.csv")
+head(data)
+dim(data)
+```
+
+#### Check the structure of the dataset
+```{r}
+str(data)
+```
+
+From understanding the structure, it is observed that variables such as Dep.Date,Enquiry.Date and Enquiry.Time have significant number of levels. It would be ideal to categorise them into larger groups. For example Dep.Date can be categorised into months or seasons, such analysis would allow us to get better insights from the data. It is also critical to check the structure in which R has identified each variable (factor, numerical, integet, etc). In this dataset, R has identified dates as factor. This should be coverted to date format.
+
+Before further analysis, it is a good practice to eliminate variables which are not relevant to the analysis, in this case ConversationRCD as well as TempSent will be eliminated.
+
+```{r}
+data$TempSent<-NULL
+data$ConversationRCD<-NULL
+```
+
+#### Convert Dep.Date and Enquiry.Date to date format
+```{r}
+data$Enquiry.Date<- as.character(data$Enquiry.Date)
+data$Enquiry.Date<-mdy(data$Enquiry.Date)
+data$Dep.Date<- as.character(data$Dep.Date)
+data$Dep.Date<-mdy(data$Dep.Date)
+```
+
+#### Apply feature engineering to create various date related columns which might give us better insights
+```{r}
+data$EnquiryYear<-factor(year(data$Enquiry.Date))
+data$EnquiryMonth<-factor(month(data$Enquiry.Date))
+data$EnquiryDay<-day(data$Enquiry.Date)
+data$EnquiryWeekday<-factor(weekdays(data$Enquiry.Date))
+data$DepYear<-factor(year(data$Dep.Date))
+data$DepMonth<-factor(month(data$Dep.Date))
+data$DepDay<-day(data$Dep.Date)
+data$DepWeekday<-factor(weekdays(data$Dep.Date))
+```
+
+#### Change Enquiry.time to various time related levels to give us better insights
+```{r}
+data$Enquiry.Time <- as.numeric(gsub("\\:.*$", "", data$Enquiry.Time))
+data$Enquiry.Timecat<-ifelse(data$Enquiry.Time>=9 & data$Enquiry.Time<=21,"Business_Hour","Closed")
+data$Enquiry.Timecat<-factor(data$Enquiry.Timecat)
+
+data$Enquiry.Time_class <- with(data,  ifelse(Enquiry.Time >= 6 & Enquiry.Time<=12, "morning",
+                                              ifelse(Enquiry.Time>12 & Enquiry.Time<=18, "afternoon", "night")))
+data$Enquiry.Time<- NULL
+data$Enquiry.Time_class<-factor(data$Enquiry.Time_class)
+```
+
+#### Change Dep.Date to seasons this could give a better idea of popular destinations for each seasons
+```{r}
+yq <- as.yearqtr(as.yearmon(data$Dep.Date, "%m/%d/%Y") + 1/12)
+data$DepartureSeason <- factor(format(yq, "%q"), levels = 1:4, 
+                               labels = c("winter", "spring", "summer", "fall"))
+```
+
+Since Enquiry.Date and Dep.Date has no further use in this analysis, these variables are removed
+```{r}
+data$Enquiry.Date<-NULL
+data$Dep.Date<-NULL
+```
+
+#### Check for missing values
+```{r}
+colSums(is.na(data))
+```
+The variable Duration has missing values. Since only a small number of observations have missing values, it was decided that the missing values will be replace by the mean value
+```{r}
+data$Duration<-na.mean(data$Duration,option="mean")
+```
+
+To further understand the data, the summary function is used
+```{r}
+summary(data)
+```
+The summary function shows the statistics of the numerical variables and the breakdown of the different levels of the categorical variables. The information gained from this function is critical in preparing the data for analysis.
+
+The variable Answered.by.specialist has 490 unlabeled data and 509 labeled as 'Yes'. This means that only when the event occurs, it was recorded as 'Yes' otherwise left blank. These unlabeled observations should be converted to 'NO' before further analysis.
+
+```{r}
+data$Answered.by.specialist<-ifelse(data$Answered.by.specialist %in% 'Yes',"1","0")
+data$Answered.by.specialist<-factor(data$Answered.by.specialist)
+```
+
+From the summary analysis carried out earlier, it is understood that there are some errors in the data. To remove these errors, a function is created. This function converts any values stated by the user to 'NA'
+
+```{r}
+outlierReplace = function(dataframe, cols, rows, newValue = NA)
+{
+  if (any(rows)) 
+  {
+    set(dataframe, rows, cols, newValue)
+  }
+}
+```
+
+From the understanding of the dataset, Lead.Time refers to the duration before the Dep.Date that the customer has made the enquiry. Based on this knowledge this variable should not have negative values. Hence the outlierfunction is used to eliminate any negative values
+```{r}
+outlierReplace(data, "Lead.Time",which(data$Lead.Time<0), NA)
+```
+
+The variable infants has a maximum value of 255, this is likely to be an error based on the mean and median. Furthermore it is unlikely to have 255 infants in a holiday.To verify the error a scatter plot is used to get a better understanding
+```{r}
+plot(data$Infants)
+```
+
+Based on the plot, the row with 255 infants was eliminated as this is definitely a data entry error
+```{r}
+outlierReplace(data,"Infants",which(data$Infants>10),NA)
+```
+Checking the plot again for Infants
+```{r}
+plot(data$Infants)
+```
+
+From the plot it is observed that there is only two observations where Infants >1, hence it was decided that these observations will be treated as outliers.
+```{r}
+outlierReplace(data,"Infants",which(data$Infants>1),NA)
+```
+
+From the summary statistics of Adults, the maximum value of adults is far greater than the mean and median value. To better understand this, a scatterplot for adults is created.
+```{r}
+plot(data$Adults)
+```
+
+From the plot, it is observed that these is some extreme values, it is ideal to remove these extreme values to prevent overfitting. In this case, it is decided that all observations with greater than 10 adults will be treated as outliers. Sometimes it is ideal to use a box-plot to eliminate outliers, but in this dataset a boxplot method to remove outliers removed many important observations. Hence, the outlier function created earlier was used to deal with the outliers.
+
+```{r}
+outlierReplace(data,"Adults",which(data$Adults>10),NA)
+```
+
+Outliers in Duration was treated using the same method
+```{r}
+plot(data$Duration)
+outlierReplace(data,"Duration",which(data$Duration>21),NA)
+outlierReplace(data,"Duration",which(data$Duration<5),NA)
+```
+
+
+A plot of children was created to understand the outliers in the varaiable children
+```{r}
+plot(data$Children)
+```
+
+A box plot method was used to deal with the outliers for the valiable 'Children'
+```{r}
+boxplot(data$Children)
+outliers2 <- boxplot(data$Children, plot=FALSE)$out
+data <- data[-which(data$Children %in% outliers2),]
+```
+
+Similarly outliers in Lead.Time was treated using the same method
+```{r}
+boxplot(data$Lead.Time)
+outliers3 <- boxplot(data$Lead.Time, plot=FALSE)$out
+data <- data[-which(data$Lead.Time %in% outliers3),]
+```
+
+
+#### Remove all outliers and NA values
+```{r}
+data<-na.omit(data)
+```
+
+To avoid redundant levels in a categorical variable and to deal with rare levels, we can simply combine the rare levels.In this analysis, combining levels is based on frequency destribution (combine levels having frequency of less than 5%). From the summary statistic, Destination and Dep.Airport has more than 10 levels. A histogram plot is created to understand the levels in these variables and rare levels of these variables are combined.
+
+
+#### Destination
+```{r}
+plot_bar(data$Destination)
+data<-group_category(data=data, feature = "Destination", threshold=0.05, update=TRUE)
+data$Destination<- factor(data$Destination)
+```
+New levels for Destination after combining rare levels
+```{r}
+plot_bar(data$Destination)
+```
+
+
+#### Dep.Airport
+```{r}
+plot_bar(data$Dep.Airport)
+data<-group_category(data=data, feature = "Dep.Airport", threshold=0.05,update=TRUE)
+data$Dep.Airport<-factor(data$Dep.Airport)
+```
+New levels for Dep.Airport after combining rare levels
+```{r}
+plot_bar(data$Dep.Airport)
+```
+
+#### Combine levels based on business logic
+
+From the plot of Transport.Type it is identified that some of the points are unlabeled, we can treat the unlabelled points as 'None Required'Combining unlabed points with the the 'None required' level
+```{r}
+plot_bar(data$Transport.Type)
+data$Transport.Type <- with(data,  ifelse(Transport.Type %in% "A","A",
+                                          ifelse(Transport.Type %in% "B", "B", "None Required")))
+data$Transport.Type<- factor(data$Transport.Type)
+```
+
+
+#### Combine unlabbeled points in Accom.type into 'None'
+```{r}
+plot_bar(data$Accom.type)
+data$Accom.type <- with(data,  ifelse(Accom.type %in% "grade2","grade2",
+                                      ifelse(Accom.type %in% "grade1", "grade1", 
+                                             ifelse(Accom.type %in% "grade3", "grade3","None"))))
+
+data$Accom.type<- factor(data$Accom.type)
+```
+
+It could be ideal to analyse based on gender than based on Title, converting title to M for male and F for female. An assumption is made that "Dr" refers to male
+
+```{r}
+data$Gender<- with(data, ifelse(Title %in% "Dr","M",
+                                ifelse(Title %in% "Mr","M",
+                                       ifelse(Title %in% "Ms","F",
+                                              ifelse(Title %in% "Mrs","F","F")))))
+
+data$Gender<-factor(data$Gender)
+```
+
+The variable Booked.Status is the target variable and it would be ideal to convert it into '1' and '0' before modelling
+
+```{r}
+data$Booked.Status<-with(data,ifelse(Booked.Status %in% "YES","1","0"))
+data$Booked.Status<-factor(data$Booked.Status)
+```
+
+
+#### Final check 
+```{r}
+str(data)
+summary(data)
+```
+#### Minor changes (convert Duration to an integer)
+```{r}
+data$Duration<-as.integer(data$Duration)
+```
+
+
+#### Save the cleaned data as a csv
+```{r}
+write.csv(data,file='ReadyforModelling.csv')
+```

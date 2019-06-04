@@ -16,7 +16,7 @@ str(data)
 # removing feilds not required for the analysis
 data$TempSent<- NULL
 data$ConversationRCD<- NULL
-
+summary(data)
 #Convert dates to date format
 data$Enquiry.Date<- as.character(data$Enquiry.Date)
 data$Enquiry.Date<-mdy(data$Enquiry.Date)
