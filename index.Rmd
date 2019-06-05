@@ -1,6 +1,8 @@
 ---
 output:
-  pdf_document: 
+  html_document:
+    df_print: paged
+  pdf_document:
     fig_height: 4
 ---
 
