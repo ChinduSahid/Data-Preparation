@@ -77,9 +77,39 @@ outlierReplace(data, "Lead.Time",which(data$Lead.Time<0), NA)
 
 # The variable infants has a maximum value of 255, this is likely to be an error based on the mean and median.
 # To verify the error a scatter plot is used to get a better understanding
-plot(data$Infants)
-# Based on the plot, the row with 255 infants was eliminated as this could be a data entry error
-outlierReplace(data,"Infants",which(data$Infants>5),NA)
+
+boxplot(data$Infants, main= 'box-plot infants',ylab='infants')
+outliers0 <- boxplot(data$Infants, plot=FALSE)$out
+data <- data[-which(data$Infants %in% outliers0),]
+boxplot(data$Infants,main='box-plot infants after outlier removal',ylab='infants')
+
+#After removing the outliers, the data only contains observaions with 0 infants. Hence, it would not be of any use in the analysis as all cases contains 0 infants. The variable Infants is removed from the dataframe.
+data$Infants<-NULL
+
+#From the summary statistics of Adults, the maximum value of adults is far greater than the mean and median value. To better understand this, a scatterplot for adults is created.
+
+boxplot(data$Adults,main='box-plot adults',ylab='adults')
+outlierReplace(data,"Adults",which(data$Adults>10),NA)
+outliers1 <- boxplot(data$Adults, plot=FALSE)$out
+data <- data[-which(data$Adults %in% outliers1),]
+boxplot(data$Adults,main='box-plot adults after outlier removal',ylab='adults')
+
+
+#A box plot method was used to deal with the outliers for the valiable 'Children'
+
+boxplot(data$Children,main='box-plot children',ylab='children')
+outliers3 <- boxplot(data$Children, plot=FALSE)$out
+data <- data[-which(data$Children %in% outliers3),]
+boxplot(data$Children, main='box-plot children after outlier removal',ylab='children')
+
+
+#Similarly outliers in Lead.Time was treated using the same method
+
+boxplot(data$Lead.Time,main='box-plot lead.time',ylab='lead.time')
+outliers4 <- boxplot(data$Lead.Time, plot=FALSE)$out
+data <- data[-which(data$Lead.Time %in% outliers4),]
+boxplot(data$Lead.Time, main='box-plot lead.time after outlier removal',ylab='lead.time')
+
 
 # to remove all the 'NA' values
 data<-na.omit(data)

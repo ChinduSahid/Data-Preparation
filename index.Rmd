@@ -1,9 +1,9 @@
 ---
 output:
-  html_document:
-    df_print: paged
   pdf_document:
     fig_height: 4
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +17,7 @@ library(imputeTS)
 library(DataExplorer)
 library(data.table)
 ```
-
+## Author: Chindu
 ## Data Preparation
 ### *Cleaning/Feature engineering/Data manipulation*
 ***
@@ -134,7 +134,7 @@ From the understanding of the dataset, Lead.Time refers to the duration before t
 outlierReplace(data, "Lead.Time",which(data$Lead.Time<0), NA)
 ```
 
-#### Remove all outliers and NA values
+#### Remove all NA values
 ```{r}
 data<-na.omit(data)
 ```
