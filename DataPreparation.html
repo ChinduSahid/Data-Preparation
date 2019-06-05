@@ -1648,6 +1648,9 @@ $(document).ready(function () {
 </div>
 
 
+<div id="author-chindu" class="section level2">
+<h2>Author: Chindu</h2>
+</div>
 <div id="data-preparation" class="section level2">
 <h2>Data Preparation</h2>
 <div id="cleaningfeature-engineeringdata-manipulation" class="section level3">
@@ -1841,8 +1844,8 @@ data$Answered.by.specialist&lt;-factor(data$Answered.by.specialist)</code></pre>
 <p>From the understanding of the dataset, Lead.Time refers to the duration before the Dep.Date that the customer has made the enquiry. Based on this knowledge this variable should not have negative values. Hence the outlierfunction is used to eliminate any negative values.</p>
 <pre class="r"><code>outlierReplace(data, &quot;Lead.Time&quot;,which(data$Lead.Time&lt;0), NA)</code></pre>
 </div>
-<div id="remove-all-outliers-and-na-values" class="section level4">
-<h4>Remove all outliers and NA values</h4>
+<div id="remove-all-na-values" class="section level4">
+<h4>Remove all NA values</h4>
 <pre class="r"><code>data&lt;-na.omit(data)</code></pre>
 <p>The variable infants has a maximum value of 255, this is likely to be an error based on the mean and median. Furthermore it is unlikely to have 255 infants in a holiday.To verify the error a box-plot is used to get a better understanding.</p>
 <pre class="r"><code>boxplot(data$Infants, main= &#39;box-plot infants&#39;,ylab=&#39;infants&#39;)
