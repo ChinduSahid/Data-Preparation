@@ -185,6 +185,7 @@ plot_bar(data$Destination,title="Destination")
 data<-group_category(data=data, feature = "Destination", threshold=0.05, update=TRUE)
 data$Destination<- factor(data$Destination)
 ```
+\newpage
 New levels for Destination after combining rare levels
 ```{r}
 plot_bar(data$Destination,title="Destination after combining levels")
@@ -197,24 +198,30 @@ plot_bar(data$Dep.Airport,title="Dep.Airport")
 data<-group_category(data=data, feature = "Dep.Airport", threshold=0.05,update=TRUE)
 data$Dep.Airport<-factor(data$Dep.Airport)
 ```
+\newpage
 New levels for Dep.Airport after combining rare levels
 ```{r}
 plot_bar(data$Dep.Airport,title="Dep.Airport after combining levels")
 ```
 \newpage
 
-#### Combine levels based on business logic
+## Combine levels based on business logic
 
+#### Combine unlabbeled points in Transport.Type into 'None'
 From the plot of Transport.Type it is identified that some of the points are unlabeled, we can treat the unlabelled points as 'None Required'Combining unlabed points with the the 'None required' level
 ```{r}
 plot_bar(data$Transport.Type,title="Transport.Type")
 data$Transport.Type <- with(data,  ifelse(Transport.Type %in% "A","A",
                                      ifelse(Transport.Type %in% "B", "B", "None Required")))
 data$Transport.Type<- factor(data$Transport.Type)
+```
+\newpage
+New levels for Transport.Type after combining rare levels
+```{r}
 plot_bar(data$Transport.Type,title="Transport.Type after combining levels")
 ```
 
-
+\newpage
 #### Combine unlabbeled points in Accom.type into 'None'
 ```{r}
 plot_bar(data$Accom.type,title="Accom.type")
@@ -223,6 +230,9 @@ data$Accom.type <- with(data,  ifelse(Accom.type %in% "grade2","grade2",
                                      ifelse(Accom.type %in% "grade3", "grade3","None"))))
 
 data$Accom.type<- factor(data$Accom.type)
+```
+New levels for Accom.type after combining rare levels
+```{r}
 plot_bar(data$Accom.type,title="Accom.type after combining levels")
 ```
 
@@ -236,6 +246,9 @@ data$Gender<- with(data, ifelse(Title %in% "Dr","M",
                                               ifelse(Title %in% "Mrs","F","F")))))
 
 data$Gender<-factor(data$Gender)
+```
+New variable gender with levels M indicating Male and F indicating female
+```{r}
 plot_bar(data$Gender, title="Gender")
 ```
 
