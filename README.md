@@ -10,5 +10,5 @@ library(imputeTS)
 library(DataExplorer)
 library(data.table)
 
-Refer to pdf for the detailed explanation of the data-preparation process.
+https://github.com/ChinduSahid/Data-Preparation/blob/master/DataPreparation.pdf
 
